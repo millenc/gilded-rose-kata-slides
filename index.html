@@ -162,10 +162,11 @@
                 </section>
                 <section style="text-align: left;">
                     <h2>The code</h2>
+                    <small>
+                    gilded_rose.py:
                     <pre style="width:100%;font-size:12px">
                         <code data-trim data-noescape style="max-height:500px">
                         class GildedRose(object):
-
                             def __init__(self, items):
                                 self.items = items
 
@@ -200,9 +201,12 @@
                                                 item.quality = item.quality + 1
                         </code>
                     </pre>
+                    </small>
                 </section>
                 <section style="text-align: left;">
                     <h2>The code (cont.)</h2>
+                    <small>
+                    gilded_rose.py (cont.):
                     <pre style="width:100%;font-size:12px">
                         <code data-trim data-noescape style="max-height:500px">
                         class Item:
@@ -215,6 +219,7 @@
                                 return "%s, %s, %s" % (self.name, self.sell_in, self.quality)
                         </code>
                     </pre>
+                    test_gilded_rose.py:
                     <pre style="width:100%;font-size:12px">
                         <code data-trim data-noescape style="max-height:500px">
                         # -*- coding: utf-8 -*-
@@ -233,12 +238,13 @@
                             unittest.main()
                         </code>
                     </pre>
+                    </small>
                 </section>
                 <section style="text-align: left;">
                     <h2>Problems!</h2>
                     <small>
                         <p>
-                        The update_quality() method is a complete mess!
+                        The update_quality() method is a complete mess of spaghetti code!
                         </p>
                         <ul>
                             <li class="fragment fade-up">Violates the Single Responsibility Principle (SRP): Contains business logic to update multiple kinds of items.</li>
@@ -268,6 +274,246 @@
                             <li class="fragment fade-up"><b>3. Test</b>: On each iteration of refactoring or adding new code, we must run tests before moving on.</li>
                             <li class="fragment fade-up"><b>4. Rinse and repeat</b>: until we're done refactoring or adding new functionalities.</li>
                         </ul>
+                    </small>
+                </section>
+                <section style="text-align: left;">
+                    <h2>Write unit tests</h2>
+                    <p>
+                        Add unit tests to the test_gilded_rose.py file. Here, we've created an _update_item() auxiliary function that takes an item, updates it and returns it back.
+                    </p>
+                    <p>
+                        This will make writing tests very straight-forward:
+                    </p>
+                    <pre style="width:100%;font-size:12px">
+                        <code data-trim data-noescape style="max-height:500px">
+                        # -*- coding: utf-8 -*-
+                        import unittest
+                        
+                        from gilded_rose import Item, GildedRose
+                        
+                        class GildedRoseTest(unittest.TestCase):
+                            def _update_item(self, item):
+                                GildedRose([item]).update_quality()
+                        
+                                return item
+                        </code>
+                    </pre>
+                </section>
+                <section style="text-align: left;">
+                    <h2>Write unit tests (cont.)</h2>
+                    <small>
+                    <p>
+                    One test per business rule:
+                    </p>
+                    <ul>
+                        <li class="fragment fade-up">
+                            At the end of the day, the system lowers the quality of items:
+                            <pre style="width:100%;font-size:12px">
+                                <code data-trim data-noescape style="max-height:500px">
+                                def test_quality_degrades(self):
+                                    self.assertEquals(self._update_item(Item("Elixir of the Mongoose", 10, 50)).quality, 49)
+                                </code>
+                            </pre>
+                        </li>
+                        <li class="fragment fade-up">
+                            At the end of the day, the system lowers the sell-in of items:
+                            <pre style="width:100%;font-size:12px">
+                                <code data-trim data-noescape style="max-height:500px">
+                                def test_sell_in_decrements(self):
+                                    self.assertEquals(self._update_item(Item("Elixir of the Mongoose", 10, 50)).sell_in, 9)
+                                </code>
+                            </pre>
+                        </li>
+                        <li class="fragment fade-up">
+                            Once the sell by date has passed, Quality degrades twice as fast:
+                            <pre style="width:100%;font-size:12px">
+                                <code data-trim data-noescape style="max-height:500px">
+                                def test_quality_degrades_twice_as_fast_when_sell_in_passed(self):
+                                    self.assertEquals(self._update_item(Item("Elixir of the Mongoose", 0, 50)).quality, 48)
+                                </code>
+                            </pre>
+                        </li>
+                    </ul>
+                    </small>
+                </section>
+                <section style="text-align: left;">
+                    <h2>Write unit tests (cont.)</h2>
+                    <small>
+                    <ul>
+                        <li class="fragment fade-up">
+                            The Quality of an item is never negative:
+                            <pre style="width:100%;font-size:12px">
+                                <code data-trim data-noescape style="max-height:500px">
+                                def test_quality_higher_or_equal_zero(self):
+                                    self.assertEquals(self._update_item(Item("Elixir of the Mongoose", 0, 0)).quality, 0)
+                                </code>
+                            </pre>
+                        </li>
+                        <li class="fragment fade-up">
+                            The Quality of an item is never more than 50:
+                            <pre style="width:100%;font-size:12px">
+                                <code data-trim data-noescape style="max-height:500px">
+                                def test_quality_less_or_equal_fifty(self):
+                                    self.assertEquals(self._update_item(Item("Aged Brie", 10, 50)).quality, 50)
+                                </code>
+                            </pre>
+                        </li>
+                        <li class="fragment fade-up">
+                            <img src="img/brie.jpg" height="30" style="vertical-align: middle">&nbsp;"Aged Brie" actually increases in Quality the older it gets:
+                            <pre style="width:100%;font-size:12px">
+                                <code data-trim data-noescape style="max-height:500px">
+                                def test_aged_brie_quality_increases(self):
+                                    self.assertEquals(self._update_item(Item("Aged Brie", 10, 40)).quality, 41)
+                                </code>
+                            </pre>
+                        </li>
+                    </ul>
+                    </small>
+                </section>
+                <section style="text-align: left;">
+                    <h2>Write unit tests (cont.)</h2>
+                    <small>
+                    <ul>
+                        <li class="fragment fade-up">
+                            <img src="img/sulfuras.jpg" height="30" style="vertical-align: middle">&nbsp;"Sulfuras", being a legendary item, never has to be sold or decreases in Quality:
+                            <pre style="width:100%;font-size:12px">
+                                <code data-trim data-noescape style="max-height:500px">
+                                def test_sulfuras_inmutable(self):
+                                    sulfuras = Item("Sulfuras, Hand of Ragnaros", 10, 80)
+                                
+                                    self.assertEquals(self._update_item(sulfuras).quality, 80)
+                                    self.assertEquals(self._update_item(sulfuras).sell_in, 10)
+                                </code>
+                            </pre>
+                        </li>
+                        <li class="fragment fade-up">
+                            <img src="img/backstage.jpg" height="30" style="vertical-align: middle">&nbsp;"Backstage passes", like aged brie, increases in Quality as its SellIn value approaches; Quality increases by 2 when there are 10 days or less and by 3 when there are 5 days or less but Quality drops to 0 after the concert
+                            <pre style="width:100%;font-size:12px">
+                                <code data-trim data-noescape style="max-height:500px">
+                                def test_backstage_passes_quality_increases(self):
+                                    self.assertEquals(self._update_item(Item("Backstage passes to a TAFKAL80ETC concert", 15, 40)).quality, 41)
+                                
+                                def test_backstage_passes_quality_increases_when_sell_in_ten_days_or_less(self):
+                                    self.assertEquals(self._update_item(Item("Backstage passes to a TAFKAL80ETC concert", 10, 40)).quality, 42)
+                                
+                                def test_backstage_passes_quality_increases_when_sell_in_five_days_or_less(self):
+                                    self.assertEquals(self._update_item(Item("Backstage passes to a TAFKAL80ETC concert", 5, 40)).quality, 43)
+                                
+                                def test_backstage_passes_quality_drops_to_zero_when_sell_in_passed(self):
+                                    self.assertEquals(self._update_item(Item("Backstage passes to a TAFKAL80ETC concert", 0, 40)).quality, 0)
+                                </code>
+                            </pre>
+                        </li>
+                    </ul>
+                    </small>
+                </section>
+                <section style="text-align: left;">
+                    <h2>1st Refactor</h2>
+                    <small>
+                    <ul>
+                        <li class="fragment fade-up">
+                            Now that we have our unit tests ready, let's refactor the code to make it more readable and easier to maintain.
+                        </li>
+                        <li class="fragment fade-up">
+                            In this first refactor we are going to focus on extracting the business logic for updating each item into functions of the Gilded Rose class.
+                        </li>
+                        <li class="fragment fade-up">
+                            Each function will be responsible for updating one type of item.
+                        </li>
+                        <li class="fragment fade-up">
+                            Once done, the update_quality() will transform into a simple loop calling the appropriate function for each item.
+                        </li>
+                    </ul>
+                    </small>
+                    <p class="fragment fade-up">
+                        Enough talk! Show me the code!
+                    </p>
+                </section>
+                <section style="text-align: left;">
+                    <h2>1st Refactor (cont.)</h2>
+                    <small>
+                        <pre style="width:100%;font-size:12px">
+                            <code data-trim data-noescape style="max-height:500px">
+                            class GildedRose(object):
+                            
+                                def __init__(self, items):
+                                    self.items = items
+                            
+                                def update_quality(self):
+                                    for item in self.items:
+                                        if item.name == "Aged Brie":
+                                            self.update_aged_brie_item_quality(item)
+                                        elif item.name == "Sulfuras, Hand of Ragnaros":
+                                            self.update_sulfuras_item_quality(item)
+                                        elif item.name == "Backstage passes to a TAFKAL80ETC concert":
+                                            self.update_backstage_pass_item_quality(item)
+                                        else:
+                                            self.update_item_quality(item)
+                            
+                                def update_item_sell_in(self, item):
+                                    item.sell_in -= 1
+                                
+                                def update_item_quality(self, item):
+                                    self.update_item_sell_in(item)
+                                    item.quality = max(0, item.quality - (1 if item.sell_in >= 0 else 2))
+                            
+                                def update_aged_brie_item_quality(self, item):
+                                    self.update_item_sell_in(item)
+                                    item.quality = min(50, item.quality + 1)
+                            
+                                def update_sulfuras_item_quality(self, item):
+                                    pass
+                            
+                                def update_backstage_pass_item_quality(self, item):
+                                    self.update_item_sell_in(item)
+                                    item.quality = 0 if item.sell_in < 0 else min(50, item.quality + 1 + (1 if item.sell_in < 11 else 0)
+                                                                                                       + (1 if item.sell_in < 6 else 0))
+                            </code>
+                        </pre>
+                    </small>
+                </section>
+                <section style="text-align: left;">
+                    <h2>1st Refactor (cont.)</h2>
+                    <small>
+                        <p>
+                            This refactored code passes all the tests! With this refactor we've achieved:
+                        </p>
+                        <ul>
+                            <li class="fragment fade-up"><b>Code that it's cleaner and easier to read</b>: The main loop on the update_quality() function is no longer a mess of business rules tangled in nested conditionals.</li>
+                            <li class="fragment fade-up"><b>Better separation of concerns</b>: each business rule is encapsulated in a separate function that does only one thing.</li>
+                            <li class="fragment fade-up"><b>Better maintainability</b>: adding new rules is easier than before (just add a new function and call it in the main loop)</li>
+                            <li class="fragment fade-up"><b>Less verbose code</b>: by using inline conditionals and short-hand operators.</li>
+                        </ul>
+                    </small>
+                </section>
+                <section style="text-align: left;">
+                    <h2>New requirement</h2>
+                    <small>
+                        <p>
+                            With this simple first refactor we can easily add the new requirement for <img src="img/conjured.jpg" height="30" style="vertical-align: middle">&nbsp;Conjured items. We just have to modify the update_item_quality() function:
+                        </p>
+                        <pre style="width:100%;font-size:12px">
+                            <code data-trim data-noescape style="max-height:500px">
+                            def update_item_quality(self, item):
+                                self.update_item_sell_in(item)
+                                item.quality = max(0, item.quality - (1 if item.sell_in >= 0 else 2) * (2 if item.name.startswith("Conjured") else 1))
+                            </code>
+                        </pre>
+                        <p>
+                            And some tests:
+                        </p>
+                        <pre style="width:100%;font-size:12px">
+                            <code data-trim data-noescape style="max-height:500px">
+                            def test_conjured_quality_degrades(self):
+                                self.assertEquals(self._update_item(Item("Conjured Elixir of the Mongoose", 10, 50)).quality, 48)
+                            </code>
+                        </pre>
+                        <pre style="width:100%;font-size:12px">
+                            <code data-trim data-noescape style="max-height:500px">
+                            def test_conjured_quality_degrades_twice_as_fast_when_sell_in_passed(self):
+                                self.assertEquals(self._update_item(Item("Conjured Elixir of the Mongoose", 0, 50)).quality, 46)
+                            </code>
+                        </pre>
                     </small>
                 </section>
             </div>
