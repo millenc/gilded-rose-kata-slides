@@ -516,6 +516,50 @@
                         </pre>
                     </small>
                 </section>
+                <section style="text-align: left;">
+                    <h2>New problems!</h2>
+                    <small>
+                        <p>
+                            While this refactor is a net improvement over the original code, it still has important flaws:
+                        </p>
+                        <ul>
+                            <li class="fragment fade-up"><b>The GildedRose class still does "too much"</b>: it contains business logic for many different things, thus violating the S.R.P. We've fallen in an anti-pattern known as the "God Object". If we'd keep adding methods to this class we could end up having a several thousand lines long piece of unmaintanable code.</li>
+                            <li class="fragment fade-up"><b>Code not reusable</b>: code for updating each item is not easily reusable on other parts of the system.</li>
+                        </ul>
+                    </small>
+                    <p class="fragment fade-up">
+                        Time for a new refactor!
+                    </p>
+                </section>
+                <section style="text-align: left;">
+                    <h2>2nd Refactor</h2>
+                    <small>
+                        <p>
+                            The goal of this refactor is extracting all the logic for updating each category of items in a way that it can be re-used and easily extended:
+                        </p>
+                        <div class="fragment fade-up">
+                            <p>
+                                For that, we are going to use the <a href="https://sourcemaking.com/design_patterns/strategy"><b>Strategy Design Pattern</b></a>:
+                                <ul>
+                                    <li>Define a family of algorithms, encapsulate each one, and make them interchangeable. Strategy lets the algorithm vary independently from the clients that use it.</li>
+                                    <li>Capture the abstraction in an interface, bury implementation details in derived classes.</li>
+                                </ul>
+
+                            </p>
+                            <div style="text-align:center">
+                                <img src="img/strategy.svg" style="height:200px;" />
+                            </div>
+                        </div>
+                    </small>
+                </section>
+                <section style="text-align: left;">
+                    <h2>2nd Refactor (cont.)</h2>
+                    <small>
+                        <p>
+                            We are going to create classes that encapsulate the update quality logic for each category of items.
+                        </p>
+                    </small>
+                </section>
             </div>
         </div>
 
